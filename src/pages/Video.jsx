@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { Container } from "../components/PageLayout";
 import { Header } from "../components/Header";
-import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import RecordRTC from "recordrtc";
+import axios from "axios";
 
 const Contents = styled.div`
   width: 100%;
@@ -67,12 +68,13 @@ const Question = styled.div`
 
 const Video = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const interviewId = location.state?.interviewId;
   const [isRecording, setIsRecording] = useState(false);
   const [remainingQuestions, setRemainingQuestions] = useState(5);
   const [seconds, setSeconds] = useState(15 * 60);
-
-  const [recorder, setRecoder] = useState(null);
-  const [recordedChunk, setRecodedChunk] = useState([]);
+  const [recorder, setRecorder] = useState(null);
+  const [mediaStream, setMediaStream] = useState(null);
   const videoRef = useRef(null);
 
   const handleBackClick = () => {
@@ -85,64 +87,25 @@ const Video = () => {
     return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      videoRef.current.srcObject = stream;
-
-      const newRecorder = new MediaRecorder(stream);
-
-      newRecorder.ondataavailable = (event) => {
-        setRecodedChunk((prev) => [...prev, event.data]);
-      };
-
-      newRecorder.onstop = () => {
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
-      newRecorder.start();
-      setRecoder(newRecorder);
-    } catch (error) {
-      console.error("error!:", error);
-    }
-  };
-
-  const stopRecordingAndSave = () => {
-    if (recorder) {
-      recorder.stop();
-      const recordedBlob = new Blob(recordedChunk, { type: "video/webm" });
-      const url = URL.createObjectURL(recordedBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "interview-recording.webm";
-      link.click();
-    }
-  };
-  const handleRecordClick = () => {
-    if (!isRecording) {
-      setRecodedChunk([]); // 녹음 시작 전에 청크 초기화
-      startRecording();
-    } else {
-      stopRecordingAndSave(); // 녹음이 완료되면 저장
-
-      // 녹음이 완료된 후에만 질문 개수 감소
-      setRemainingQuestions((prev) => {
-        const newCount = prev - 1;
-        if (newCount <= 0) {
-          navigate("/interview-summary");
-        }
-        return newCount;
-      });
-    }
-
-    // 녹음 상태 토글
-    setIsRecording(!isRecording);
-  };
-
   useEffect(() => {
+    // 페이지 로드 시 비디오 스트림을 가져옴
+    const getMedia = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        
+        setMediaStream(stream);
+        videoRef.current.srcObject = stream;
+      } catch (error) {
+        console.error("Error accessing media devices.", error);
+        alert("카메라와 마이크 접근 권한이 필요합니다.");
+      }
+    };
+
+    getMedia();
+
     const timer = setInterval(() => {
       setSeconds((prev) => {
         if (prev <= 1) {
@@ -156,6 +119,85 @@ const Video = () => {
 
     return () => clearInterval(timer);
   }, [navigate]);
+
+  const startRecording = () => {
+    if (!mediaStream) return;
+
+    const newRecorder = new RecordRTC(mediaStream, {
+      type: 'audio',
+      mimeType: 'audio/wav',
+      recorderType: RecordRTC.StereoAudioRecorder,
+      numberOfAudioChannels: 1,
+      desiredSampRate: 44100
+    });
+
+    newRecorder.startRecording();
+    setRecorder(newRecorder);
+    setIsRecording(true);
+  };
+
+  const stopRecording = () => {
+    if (!recorder) return;
+
+    recorder.stopRecording(() => {
+      const blob = recorder.getBlob();
+
+      const audioFile = new File([blob], 'audio.wav', { type: 'audio/wav' });
+      const formData = new FormData();
+      formData.append('wav file', audioFile);
+
+      const token = localStorage.getItem('authorization');
+      axios.post(
+        `${process.env.REACT_APP_SERVER}/api/interview/interview?interviewId=${interviewId}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`
+          },
+          responseType: 'blob'
+        }
+      )
+      .then(response => {
+        const blob = new Blob([response.data], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+        const audioElement = document.createElement('audio');
+        audioElement.src = url;
+        audioElement.play();
+
+        setRecorder(null);
+        setIsRecording(false);
+
+        setRemainingQuestions(prev => {
+          const newCount = prev - 1;
+          if (newCount <= 0) {
+            navigate('/interview-summary');
+          }
+          return newCount;
+        });
+      })
+      .catch(error => {
+        console.error("Upload error:", error);
+        if (error.response) {
+          alert(`업로드 실패: ${error.response.data.message || '서버 오류가 발생했습니다.'}`);
+        } else if (error.request) {
+          alert('서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.');
+        } else {
+          alert('업로드 중 오류가 발생했습니다.');
+        }
+        setRecorder(null);
+        setIsRecording(false);
+      });
+    });
+  };
+
+  const handleRecordClick = () => {
+    if (!isRecording) {
+      startRecording();
+    } else {
+      stopRecording();
+    }
+  };
 
   return (
     <Container>
