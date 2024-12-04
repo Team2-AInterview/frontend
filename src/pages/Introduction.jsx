@@ -5,6 +5,7 @@ import Box1 from "../components/mypage/IntroInput";
 import Box2 from "../components/mypage/IntroInput";
 import Box3 from "../components/mypage/IntroInput";
 import Box4 from "../components/mypage/IntroInput";
+import IntroInput from "../components/mypage/IntroInput";
 import { Plus } from "../img/svgs";
 import axios from "axios";
 
@@ -16,6 +17,7 @@ const Title = styled.div`
   font-style: normal;
   font-weight: 600;
 `;
+
 const Titles = styled.input`
   font-size: 20px;
   color: #000000;
@@ -109,42 +111,51 @@ const Ques = styled.div`
 
 const Introduction = () => {
   const navigate = useNavigate();
-  const [motivation, setMotivation] = useState();
-  const [teamwork, setTeamwork] = useState();
-  const [effort, setEffort] = useState();
-  const [aspiration, setAspiration] = useState();
-  const [applicationId, setApplicationId] = useState(null);
+  const [motivation, setMotivation] = useState(""); // 초기값을 빈 문자열로 설정
+  const [teamwork, setTeamwork] = useState(""); // 초기값을 빈 문자열로 설정
+  const [effort, setEffort] = useState(""); // 초기값을 빈 문자열로 설정
+  const [aspiration, setAspiration] = useState(""); // 초기값을 빈 문자열로 설정
+  const [applicationId, setApplicationId] = useState(null); // applicationId 초기값을 null로 설정
+  const [name, setName] = useState("");
+  const [customQuestions, setCustomQuestions] = useState(null);
 
   const handleBoxClick = () => {
     navigate("/mypage");
   };
+  const handleModiClick = () => {
+    navigate(`/mypage/Introduction/${applicationId}`);
+  };
 
   const handleSaveOrUpdate = async () => {
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = localStorage.getItem("authorization");
+    navigate("/mypage/introduction");
+
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
     const url = applicationId
-      ? `${process.env.REACT_APP_SERVER}/api/user/application?applicationId=${applicationId}` // Update
-      : `${process.env.REACT_APP_SERVER}/api/user/application`; // Save
+      ? `${process.env.REACT_APP_SERVER}/api/user/application?applicationId=${applicationId}`
+      : `${process.env.REACT_APP_SERVER}/api/user/application`;
 
     const method = applicationId ? "put" : "post";
 
+    const requestData = {
+      name: name, // Dynamically using the 'name' state
+      motivation: motivation, // Dynamically using the 'motivation' state
+      teamwork: teamwork, // Dynamically using the 'teamwork' state
+      aspiration: aspiration, // Dynamically using the 'aspiration' state
+      effort: effort, // Dynamically using the 'effort' state
+      customQuestions: customQuestions || [], // Dynamically using the 'customQuestions' state, defaulting to an empty array
+    };
+
     try {
+      console.log("Request Data:", requestData);
       const response = await axios({
-        method: method,
-        url: url,
-        data: {
-          name: "지원서1",
-          motivation: motivation,
-          teamwork: teamwork,
-          aspiration: aspiration,
-          effort: effort,
-          customQuestions: [
-            { question: "자신의 강점은?", answer: "끈기와 열정입니다." },
-            {
-              question: "어려운 상황에서 극복한 경험은?",
-              answer: "팀원과의 갈등을 해결한 경험이 있습니다.",
-            },
-          ],
-        },
+        method,
+        url,
+        data: requestData,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
@@ -152,53 +163,32 @@ const Introduction = () => {
       });
 
       if (response.status === 200) {
-        alert(applicationId ? "수정되었습니다!" : "저장되었습니다!");
-        setApplicationId(response.data.id);
+        // 응답에서 applicationId를 받아서 알림창에 출력
+        const applicationId = response.data.applicationId;
+        alert(
+          applicationId
+            ? `applicationId: ${applicationId}`
+            : `applicationId(저장완료): ${applicationId}`
+        );
+        setApplicationId(applicationId);
       } else {
         alert(`요청에 실패했습니다: ${response.data}`);
       }
     } catch (error) {
-      console.error("Error handling application:", error);
+      console.error("지원서 처리 중 오류:", error);
+      if (error.response) {
+        console.error("서버 응답:", error.response.data);
+      }
       alert("저장/수정에 실패했습니다.");
     }
   };
 
-  useEffect(() => {
-    const fetchApplicationData = async () => {
-      const accessToken = localStorage.getItem("accessToken");
-
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_SERVER}/api/user/application?applicationId=${applicationId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (response.status === 200) {
-          const { motivation, teamwork, effort, aspiration, id } =
-            response.data;
-          setMotivation(motivation);
-          setTeamwork(teamwork);
-          setEffort(effort);
-          setAspiration(aspiration);
-          setApplicationId(id);
-        } else {
-          console.log("No application found");
-        }
-      } catch (error) {
-        console.error("Error fetching application:", error);
-      }
-    };
-
-    fetchApplicationData();
-  }, [applicationId]);
-
   const handleInput = (e, field) => {
     const value = e.target.value;
-    if (field === "motivation") {
+    console.log(`Changing ${field} to: `, value); // 값이 제대로 넘어오는지 확인
+    if (field === "name") {
+      setName(value);
+    } else if (field === "motivation") {
       setMotivation(value);
     } else if (field === "teamwork") {
       setTeamwork(value);
@@ -206,48 +196,43 @@ const Introduction = () => {
       setEffort(value);
     } else if (field === "aspiration") {
       setAspiration(value);
+    } else if (field === "customQuestions") {
+      setCustomQuestions(value);
     }
   };
 
   return (
     <>
-      <Title>
+      <Title type="text" value={name} onChange={(e) => handleInput(e, "name")}>
         <Titles placeholder="지원서명을 작성해주세요." />
       </Title>
       <Maindiv>
         <Subtitle style={{ marginTop: "19px" }}>
           1. 지원동기를 적어주세요.
         </Subtitle>
-        <Box1
-          type="text"
-          value={motivation}
-          onChange={(e) => handleInput(e, "motivation")}
-        />
         <Subtitle style={{ marginTop: "162px" }}>
           2. 기억에 남는 팀 활동과 팀 내 본인의 역할을 적어주세요.
         </Subtitle>
-        <Box2
+        <IntroInput
           type="text"
-          value={teamwork}
-          onChange={(e) => handleInput(e, "teamwork")}
+          handleInput={handleInput}
+          values={{
+            motivation,
+            teamwork,
+            effort,
+            aspiration,
+          }}
         />
+
         <Subtitle style={{ marginTop: "303px" }}>
           3. 직무에 필요한 전문성(지식/기술)을 쌓기 위하여 <br />
           어떠한 노력을 하였는지 적어주세요.
         </Subtitle>
-        <Box3
-          type="text"
-          value={effort}
-          onChange={(e) => handleInput(e, "effort")}
-        />
+
         <Subtitle style={{ marginTop: "456px" }}>
           4. 입사 후의 포부를 적어주세요.
         </Subtitle>
-        <Box4
-          type="text"
-          value={aspiration}
-          onChange={(e) => handleInput(e, "aspiration")}
-        />
+
         <Qdiv>
           <Ques>질문 추가하기</Ques>
           <Plus />
@@ -255,7 +240,7 @@ const Introduction = () => {
       </Maindiv>
       <MDdiv>
         <Modi1 onClick={handleBoxClick}>목록으로</Modi1>
-        <Modi2 onClick={handleSaveOrUpdate}>수정완료</Modi2>
+        <Modi2 onClick={(handleSaveOrUpdate, handleModiClick)}>저장하기</Modi2>
       </MDdiv>
     </>
   );

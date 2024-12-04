@@ -2,7 +2,7 @@ import { Routes, Route, BrowserRouter } from "react-router-dom";
 import GlobalStyle from "./styles/globalstyles";
 import Navbar from "./components/Navbar";
 
-import MainBeforeLogin from "./pages/MainBeforeLogin"
+import MainBeforeLogin from "./pages/MainBeforeLogin";
 import LogIn from "./pages/LogIn";
 import SignIn from "./pages/SignIn";
 import Intro1 from "./pages/Intro1";
@@ -23,10 +23,10 @@ import InterviewSummary from "./pages/InterviewSummary";
 import Mypage from "./pages/Mypage";
 import Resume from "./pages/Resume";
 import Introduction from "./pages/Introduction";
+import Introduction_detail from "./pages/Introduction_detail";
 import Archive from "./pages/Archive";
 import ProfileEdit from "./pages/ProfileEdit";
 import { AuthProvider } from "./AuthContext";
-
 
 function App() {
   return (
@@ -49,46 +49,50 @@ function App() {
         <Route path="/login" element={<LogIn />} />
         <Route path="/signup" element={<SignIn />} />
 
-        {/* 로그인 후 메인페이지 */}
-        <Route path="/main" element={<Main />} />
+            {/* 로그인 후 메인페이지 */}
+            <Route path="/main" element={<Main />} />
 
-        {/* 면접 예상 질문 페이지 */}
-        <Route path="/interviewquestion" element={<InterviewQuestion />} />
+            {/* 면접 예상 질문 페이지 */}
+            <Route path="/interviewquestion" element={<InterviewQuestion />} />
 
-        {/* 모의 면접 선택 */}
-        <Route path="/interview" element={<MockInterview />} />
-        <Route path="/interview/technical" element={<TechInterview />} />
-        <Route path="/interview/common" element={<CommonInterview />} />
-        <Route path="/interview/integrated" element={<IntegratedInterview />} />
+            {/* 모의 면접 선택 */}
+            <Route path="/interview" element={<MockInterview />} />
+            <Route path="/interview/technical" element={<TechInterview />} />
+            <Route path="/interview/common" element={<CommonInterview />} />
+            <Route
+              path="/interview/integrated"
+              element={<IntegratedInterview />}
+            />
 
-        {/* 면접 옵션 선택 */}
-        <Route path="/interview/options" element={<InterviewOptions />} /> 
+            {/* 면접 옵션 선택 */}
+            <Route path="/interview/options" element={<InterviewOptions />} />
 
-        {/* 화상 면접 */}
-        <Route path="/video" element={<Video/>} />
-        <Route path="/group-video" element={<GroupVideo/>} />
+            {/* 화상 면접 */}
+            <Route path="/video" element={<Video />} />
+            <Route path="/group-video" element={<GroupVideo />} />
 
-        {/* 음성 면접 */}
-        <Route path="/audio" element={<Audio/>} />
+            {/* 음성 면접 */}
+            <Route path="/audio" element={<Audio />} />
 
-        {/* 면접 종료 후 총평 페이지 */}
-        <Route path="/interview-summary" element={<InterviewSummary />} />
+            {/* 면접 종료 후 총평 페이지 */}
+            <Route path="/interview-summary" element={<InterviewSummary />} />
 
-        {/* 마이 페이지 */}
-        <Route path="/mypage" element = {<Mypage/>}/>
-        <Route path="/mypage/resume" element = {<Resume/>}/>
-        <Route path="/mypage/introduction" element = {<Introduction/>}/>
-        <Route path="/mypage/archive" element = {<Archive/>}/>
-        <Route path="/mypage/profile-edit" element = {<ProfileEdit/>}/>
-
-      </Routes>
-      <Navbar/>
-
-      </div>
+            {/* 마이 페이지 */}
+            <Route path="/mypage" element={<Mypage />} />
+            <Route path="/mypage/resume" element={<Resume />} />
+            <Route path="/mypage/introduction" element={<Introduction />} />
+            <Route
+              path="/mypage/introduction/:applicationId"
+              element={<Introduction_detail />}
+            />
+            <Route path="/mypage/archive" element={<Archive />} />
+            <Route path="/mypage/profile-edit" element={<ProfileEdit />} />
+          </Routes>
+          <Navbar/>
+        </div>
       </BrowserRouter>
-      </AuthProvider>
+    </AuthProvider>
   );
 }
 
 export default App;
-
