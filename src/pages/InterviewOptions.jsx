@@ -156,7 +156,7 @@ const Ready = styled.div`
   font-family: "Noto Sans";
   font-size: 16px;
   font-weight: 700;
-  padding-top: 80px;
+  padding-top: 60px;
 `
 const NextBtn = styled.button`
   width: 324px;
@@ -334,6 +334,8 @@ const InterviewOptions = () => {
                 </Caution>
                 <Ready>
                     전부 준비되셨나요?<br/>
+                    입장하시면 자기소개부터<br/>
+                    진행해주시면 됩니다.<br/>
                     그럼 바로 면접장으로 입장하세요!
                 </Ready>
                 <NextBtn 
