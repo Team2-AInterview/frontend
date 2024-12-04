@@ -99,33 +99,6 @@ const InterviewButton = styled.button`
   }
 `
 
-const interviewOptions = [
-  {
-    id: 'technical',
-    image: Technical,
-    alt: 'technical',
-    description: '전문 지식과 기술 능력평가',
-    buttonText: '기술 면접 진행하기',
-    path: '/interview/technical'
-  },
-  {
-    id: 'common',
-    image: Common,
-    alt: 'common',
-    description: ['공통 질문을 통한 일관된 평가'],
-    buttonText: '공통 면접 진행하기',
-    path: '/interview/common'
-  },
-  {
-    id: 'integrated',
-    image: Intergrated,
-    alt: 'integrated',
-    description: '기술 면접 + 공통 면접',
-    buttonText: '통합 면접 진행하기',
-    path: '/interview/integrated'
-  }
-];
-
 
 const InterviewOption = ({ image, alt, description, buttonText, onSelect }) => (
   <Option>
@@ -146,32 +119,67 @@ const MockInterview = () => {
         navigate('/main');
     };
 
+    const handleInterviewSelect = (type) => {
+      navigate('/interview/options', {
+          state: {
+              interviewType: type  // personality, technical, both 중 하나
+          }
+      });
+  };
+  
+    const interviewOptions = [
+      {
+          id: 'technical',
+          image: Technical,
+          alt: 'technical',
+          description: '전문 지식과 기술 능력평가',
+          buttonText: '기술 면접 진행하기',
+          type: 'technical'  
+      },
+      {
+          id: 'common',
+          image: Common,
+          alt: 'common',
+          description: ['공통 질문을 통한 일관된 평가'],
+          buttonText: '공통 면접 진행하기',
+          type: 'personality'  
+      },
+      {
+          id: 'integrated',
+          image: Intergrated,
+          alt: 'integrated',
+          description: '기술 면접 + 공통 면접',
+          buttonText: '통합 면접 진행하기',
+          type: 'both'  
+      }
+  ];
+
     return (
-        <Container>
-            <Header title="모의 면접" onBackClick={handleBackClick}/>
-            <QuestionContainer>
-                <Question>
-                    <img src={QuestionIcon} alt="question_icon" />
-                    어떤 면접을<br/>
-                    진행하고 싶으신가요?
-                </Question>
-            </QuestionContainer>
-            <Contents>
-                <OptionTitle>[면접 형식 선택]</OptionTitle>
-                <OptionContainer>
-                    {interviewOptions.map((option) => (
-                        <InterviewOption
-                            key={option.id}
-                            image={option.image}
-                            alt={option.alt}
-                            description={option.description}
-                            buttonText={option.buttonText}
-                            onSelect={() => navigate(option.path)}
-                        />
-                    ))}
-                </OptionContainer>
-            </Contents>
-        </Container>
+      <Container>
+        <Header title="모의 면접" onBackClick={handleBackClick}/>
+        <QuestionContainer>
+            <Question>
+                <img src={QuestionIcon} alt="question_icon" />
+                어떤 면접을<br/>
+                진행하고 싶으신가요?
+            </Question>
+        </QuestionContainer>
+        <Contents>
+            <OptionTitle>[면접 형식 선택]</OptionTitle>
+            <OptionContainer>
+                {interviewOptions.map((option) => (
+                    <InterviewOption
+                        key={option.id}
+                        image={option.image}
+                        alt={option.alt}
+                        description={option.description}
+                        buttonText={option.buttonText}
+                        onSelect={() => handleInterviewSelect(option.type)}
+                    />
+                ))}
+            </OptionContainer>
+        </Contents>
+    </Container>
     );
 };
 

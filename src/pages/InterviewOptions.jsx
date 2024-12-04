@@ -7,6 +7,7 @@ import Voice from "../img/Voice.png"
 import One from "../img/Multiple Messages.png"
 import Three from "../img/People Working Together.png"
 import Question from "../img/Question.svg"
+import axios from 'axios';
 
 const Container = styled.div`
   width: 391px;
@@ -155,7 +156,7 @@ const Ready = styled.div`
   font-family: "Noto Sans";
   font-size: 16px;
   font-weight: 700;
-  padding-top: 80px;
+  padding-top: 60px;
 `
 const NextBtn = styled.button`
   width: 324px;
@@ -208,20 +209,68 @@ const InterviewOptions = () => {
         setSelectedCount(count);
     };
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (!selectedMode || !selectedCount) return;
 
-        const path = selectedMode === '화상' 
-            ? (selectedCount === '3:1' ? '/group-video' : '/video')
-            : '/audio';
-
-        navigate(path, {
-            state: {
-                ...location.state,
-                interviewMode: selectedMode,
-                interviewCount: selectedCount
+        let mappedType;
+        switch(interviewType) {
+            case 'personality':
+                mappedType = 'common';
+                break;
+            case 'technical':
+                mappedType = 'technical';
+                break;
+            case 'both':
+                mappedType = 'integrated';
+                break;
+            default:
+                mappedType = 'common';
+        }
+    
+        const interviewData = {
+            url: `${process.env.REACT_APP_SERVER}/api/interview`,
+            type: mappedType,
+            isCameraOn: selectedMode === '화상',
+            isManyToOne: selectedCount === '3:1'
+        };
+    
+        try {
+            const token = localStorage.getItem('authorization');
+            const response = await axios.post(
+                `${process.env.REACT_APP_SERVER}/api/interview`,
+                interviewData,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            console.log('Response data:', response.data);
+            const path = selectedMode === '화상' 
+                ? (selectedCount === '3:1' ? '/group-video' : '/video')
+                : '/audio';
+    
+            navigate(path, {
+                state: {
+                    ...location.state,
+                    interviewMode: selectedMode,
+                    interviewCount: selectedCount,
+                    interviewSetupData: response.data,
+                    interviewId: response.data.interviewId,
+                }
+            });
+    
+        } catch (error) {
+            console.error("Interview setup error:", error);
+            if (error.response) {
+                alert(`면접 설정 실패: ${error.response.data.message || '서버 오류가 발생했습니다.'}`);
+            } else if (error.request) {
+                alert('서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.');
+            } else {
+                alert('면접 설정 중 오류가 발생했습니다.');
             }
-        });
+        }
     };
 
     return (
@@ -285,6 +334,8 @@ const InterviewOptions = () => {
                 </Caution>
                 <Ready>
                     전부 준비되셨나요?<br/>
+                    입장하시면 자기소개부터<br/>
+                    진행해주시면 됩니다.<br/>
                     그럼 바로 면접장으로 입장하세요!
                 </Ready>
                 <NextBtn 

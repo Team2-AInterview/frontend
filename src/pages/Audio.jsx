@@ -2,11 +2,11 @@ import React, { useEffect, useState }from "react";
 import styled from "styled-components";
 import { Container} from "../components/PageLayout";
 import { Header } from "../components/Header";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Play from "../img/Play.png"
 import Stop from "../img/Stop.png"
-import MicRecorder from "mic-recorder-to-mp3"
 import axios from "axios";
+import RecordRtc from "recordrtc"
 
 const Contents = styled.div`
   display: flex;
@@ -50,22 +50,23 @@ const Question = styled.div`
 
 const Audio = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const interviewId = location.state?.interviewId;
     const [isRecording, setIsRecording] = useState(false);
     const [remainingQuestions, setRemainingQuestions] = useState(5);
     const [seconds, setSeconds] = useState(15 * 60);
-    const [recorder] = useState(new MicRecorder({bitRate: 128}));
+    const [recorder, setRecorder] = useState(null);
+    const [mediaStream, setMediaStream] = useState(null);
     
     const handleBackClick = () => {
         navigate(-1);
     };
     
-
     const formatTime = (timeInSeconds) => {
         const minutes = Math.floor(timeInSeconds / 60);
         const seconds = timeInSeconds % 60;
         return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     };
-
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -82,8 +83,20 @@ const Audio = () => {
     }, [navigate]);
 
     const StartRecording = async () => {
-        try{
-            await recorder.start();
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            setMediaStream(stream);
+            
+            const newRecorder = new RecordRtc(stream, {
+                type: 'audio',
+                mimeType: 'audio/wav',
+                recorderType: RecordRtc.StereoAudioRecorder,
+                numberOfAudioChannels: 1,
+                desiredSampRate: 44100
+            });
+            
+            newRecorder.startRecording();
+            setRecorder(newRecorder);
             setIsRecording(true);
         } catch (error) {
             console.error("Error starting recording:", error);
@@ -91,33 +104,44 @@ const Audio = () => {
         }
     };
 
-    const StopRecording = async() => {
-        try{
-            const [buffer, blob] = await recorder.stop().getMp3();
+    const StopRecording = () => {
+        if (!recorder) return;
+
+        recorder.stopRecording(() => {
+            const blob = recorder.getBlob();
+            const audioFile = new File([blob], 'audio.wav', { type: 'audio/wav' });
             
-            // 녹음된 파일 재생
-            const audioElement = document.createElement('audio');
-            audioElement.src = URL.createObjectURL(blob);
-            audioElement.play();
-
-
-            const audioFile = new File(buffer, 'audio.wav', {
-                type: 'audio/wav',
-                lastModified: Date.now()
-            });
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                setMediaStream(null);
+            }
 
             const formData = new FormData();
-            formData.append('wavFile', audioFile);
+            formData.append('wav file', audioFile);
 
-            try {
-                const token = localStorage.getItem('accessToken');
-                const response = await axios.post(`/api/interview/interview`, formData, {
+            const token = localStorage.getItem('authorization');
+            axios.post(
+                `${process.env.REACT_APP_SERVER}/api/interview/interview?interviewId=${interviewId}`,
+                formData,
+                {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         'Authorization': `Bearer ${token}`
-                    }
-                });
-                console.log('Upload success:', response.data);
+                    },
+                    responseType: 'blob'
+                }
+            )
+            .then(response => {
+                const blob = new Blob([response.data], { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                const audioElement = document.createElement('audio');
+                audioElement.src = url;
+                audioElement.play();
+
+                setRecorder(null);
+                setIsRecording(false);
+
+                console.log('Upload success and playing response');
                 setRemainingQuestions(prev => {
                     const newCount = prev - 1;
                     if (newCount <= 0) {
@@ -125,31 +149,26 @@ const Audio = () => {
                     }
                     return newCount;
                 });
-
-            } catch(error){
-                console.log("Upload error:", error);
-                if (error.response){
-                    console.error('Server error: ', error.response.data);
+            })
+            .catch(error => {
+                console.error("Upload error:", error);
+                if (error.response) {
                     alert(`업로드 실패: ${error.response.data.message || '서버 오류가 발생했습니다.'}`);
-                } else if (error.request){
+                } else if (error.request) {
                     alert('서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.');
-                } else{
+                } else {
                     alert('업로드 중 오류가 발생했습니다.');
                 }
-            }
-
-            setIsRecording(false);
-        } catch (error) {
-            console.error("Recording error:", error);
-            alert("녹음 중지 중 오류가 발생했습니다.");
-            setIsRecording(false);
-        }
+                setRecorder(null);
+                setIsRecording(false);
+            });
+        });
     };
 
     const handleRecordClick = () => {
-        if(!isRecording){
+        if (!isRecording) {
             StartRecording();
-        }else{
+        } else {
             StopRecording();
         }
     };
