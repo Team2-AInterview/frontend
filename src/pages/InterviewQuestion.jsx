@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 const Container = styled.div`
   display: flex;
   width: 391px;
-  height: 100%;
+  min-height: 100vh;
   flex-direction: column;
   align-items: center;
   padding: 20px;
@@ -47,7 +47,7 @@ const ResumeSelector = styled.div`
 const QuestionButton = styled.button`
   width: 110px;
   height: 25px;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   background-color: #3A00F9;
   color: white;
   border: none;

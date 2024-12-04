@@ -34,7 +34,6 @@ function App() {
     <BrowserRouter>
       <GlobalStyle />
       <div className="app-container">
-        <Navbar/>
       <Routes>
         {/* 로그인 전 메인화면 */}
         <Route path="/" element={<MainBeforeLogin />} />
@@ -82,7 +81,9 @@ function App() {
         <Route path="/mypage/archive" element = {<Archive/>}/>
         <Route path="/mypage/profile-edit" element = {<ProfileEdit/>}/>
 
-          </Routes>
+      </Routes>
+      <Navbar/>
+
       </div>
       </BrowserRouter>
       </AuthProvider>

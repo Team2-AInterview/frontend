@@ -9,9 +9,12 @@ const Wrapper = styled.nav`
   background-color: #fff;
   padding: 10px 0;
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-  position: absolute;
+  position: relative;
   bottom: 0;
+  left: 0;
+  right: 0;
   width: 100%;
+  z-index: 1000;
 `;
 
 const NavLink = styled(Link)`
