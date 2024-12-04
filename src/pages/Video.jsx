@@ -88,7 +88,6 @@ const Video = () => {
   };
 
   useEffect(() => {
-    // 페이지 로드 시 비디오 스트림을 가져옴
     const getMedia = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -136,60 +135,81 @@ const Video = () => {
     setIsRecording(true);
   };
 
-  const stopRecording = () => {
+  const sendAudioToServer = async (audioFile, endpoint) => {
+    const formData = new FormData();
+    formData.append('wav file', audioFile);
+    const token = localStorage.getItem('authorization');
+
+    try {
+        const response = await axios.post(
+            `${process.env.REACT_APP_SERVER}${endpoint}`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                },
+                responseType: 'blob'
+            }
+        );
+        return response;
+    } catch (error) {
+        console.error(`Error sending audio to ${endpoint}:`, error);
+        throw error;
+    }
+};
+
+const playAudioResponse = (blob) => {
+    const url = URL.createObjectURL(blob);
+    const audioElement = document.createElement('audio');
+    audioElement.src = url;
+    audioElement.play();
+};
+
+const stopRecording = () => {
     if (!recorder) return;
 
-    recorder.stopRecording(() => {
-      const blob = recorder.getBlob();
+    recorder.stopRecording(async () => {
+        const blob = recorder.getBlob();
+        const audioFile = new File([blob], 'audio.wav', { type: 'audio/wav' });
 
-      const audioFile = new File([blob], 'audio.wav', { type: 'audio/wav' });
-      const formData = new FormData();
-      formData.append('wav file', audioFile);
+        try {
+            const interviewResponse = await sendAudioToServer(
+                audioFile,
+                `/api/interview/interview?interviewId=${interviewId}`
+            );
+            playAudioResponse(interviewResponse.data);
 
-      const token = localStorage.getItem('authorization');
-      axios.post(
-        `${process.env.REACT_APP_SERVER}/api/interview/interview?interviewId=${interviewId}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`
-          },
-          responseType: 'blob'
+            await sendAudioToServer(
+                audioFile,
+                '/api/interview/Pronounce'
+            );
+            console.log('Pronunciation check completed');
+
+            setRecorder(null);
+            setIsRecording(false);
+
+            setRemainingQuestions(prev => {
+                const newCount = prev - 1;
+                if (newCount <= 0) {
+                    navigate('/interview-summary');
+                }
+                return newCount;
+            });
+
+        } catch (error) {
+            let errorMessage = '오류가 발생했습니다.';
+            if (error.response) {
+                errorMessage = error.response.data.message || '서버 오류가 발생했습니다.';
+            } else if (error.request) {
+                errorMessage = '서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.';
+            }
+            alert(errorMessage);
+            setRecorder(null);
+            setIsRecording(false);
         }
-      )
-      .then(response => {
-        const blob = new Blob([response.data], { type: 'audio/wav' });
-        const url = URL.createObjectURL(blob);
-        const audioElement = document.createElement('audio');
-        audioElement.src = url;
-        audioElement.play();
-
-        setRecorder(null);
-        setIsRecording(false);
-
-        setRemainingQuestions(prev => {
-          const newCount = prev - 1;
-          if (newCount <= 0) {
-            navigate('/interview-summary');
-          }
-          return newCount;
-        });
-      })
-      .catch(error => {
-        console.error("Upload error:", error);
-        if (error.response) {
-          alert(`업로드 실패: ${error.response.data.message || '서버 오류가 발생했습니다.'}`);
-        } else if (error.request) {
-          alert('서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.');
-        } else {
-          alert('업로드 중 오류가 발생했습니다.');
-        }
-        setRecorder(null);
-        setIsRecording(false);
-      });
     });
-  };
+};
 
   const handleRecordClick = () => {
     if (!isRecording) {

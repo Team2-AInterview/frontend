@@ -1,6 +1,6 @@
-import React, { useEffect, useState }from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { Container} from "../components/PageLayout";
+import { Container } from "../components/PageLayout";
 import { Header } from "../components/Header";
 import { useNavigate, useLocation } from "react-router-dom";
 import Play from "../img/Play.png"
@@ -23,6 +23,7 @@ const Time = styled.div`
   align-self: stretch;
   margin-top: 150px;
 `
+
 const Button = styled.div`
   width: 110px;
   height: 110px;
@@ -32,6 +33,7 @@ const Button = styled.div`
     object-fit: contain;
   }
 `
+
 const Text = styled.div`
   text-align: center;
   font-family: "Noto Sans";
@@ -104,24 +106,14 @@ const Audio = () => {
         }
     };
 
-    const StopRecording = () => {
-        if (!recorder) return;
+    const sendAudioToServer = async (audioFile, endpoint) => {
+        const formData = new FormData();
+        formData.append('wav file', audioFile);
+        const token = localStorage.getItem('authorization');
 
-        recorder.stopRecording(() => {
-            const blob = recorder.getBlob();
-            const audioFile = new File([blob], 'audio.wav', { type: 'audio/wav' });
-            
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-                setMediaStream(null);
-            }
-
-            const formData = new FormData();
-            formData.append('wav file', audioFile);
-
-            const token = localStorage.getItem('authorization');
-            axios.post(
-                `${process.env.REACT_APP_SERVER}/api/interview/interview?interviewId=${interviewId}`,
+        try {
+            const response = await axios.post(
+                `${process.env.REACT_APP_SERVER}${endpoint}`,
                 formData,
                 {
                     headers: {
@@ -130,18 +122,49 @@ const Audio = () => {
                     },
                     responseType: 'blob'
                 }
-            )
-            .then(response => {
-                const blob = new Blob([response.data], { type: 'audio/wav' });
-                const url = URL.createObjectURL(blob);
-                const audioElement = document.createElement('audio');
-                audioElement.src = url;
-                audioElement.play();
+            );
+            return response;
+        } catch (error) {
+            console.error(`Error sending audio to ${endpoint}:`, error);
+            throw error;
+        }
+    };
+
+    const playAudioResponse = (blob) => {
+        const url = URL.createObjectURL(blob);
+        const audioElement = document.createElement('audio');
+        audioElement.src = url;
+        audioElement.play();
+    };
+
+    const StopRecording = () => {
+        if (!recorder) return;
+
+        recorder.stopRecording(async () => {
+            const blob = recorder.getBlob();
+            const audioFile = new File([blob], 'audio.wav', { type: 'audio/wav' });
+            
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                setMediaStream(null);
+            }
+
+            try {
+                const interviewResponse = await sendAudioToServer(
+                    audioFile,
+                    `/api/interview/interview?interviewId=${interviewId}`
+                );
+                playAudioResponse(interviewResponse.data);
+
+                const pronounceResponse = await sendAudioToServer(
+                    audioFile,
+                    '/api/interview/Pronounce'
+                );
+                console.log('Pronunciation check completed');
 
                 setRecorder(null);
                 setIsRecording(false);
 
-                console.log('Upload success and playing response');
                 setRemainingQuestions(prev => {
                     const newCount = prev - 1;
                     if (newCount <= 0) {
@@ -149,19 +172,18 @@ const Audio = () => {
                     }
                     return newCount;
                 });
-            })
-            .catch(error => {
-                console.error("Upload error:", error);
+
+            } catch (error) {
+                let errorMessage = '오류가 발생했습니다.';
                 if (error.response) {
-                    alert(`업로드 실패: ${error.response.data.message || '서버 오류가 발생했습니다.'}`);
+                    errorMessage = error.response.data.message || '서버 오류가 발생했습니다.';
                 } else if (error.request) {
-                    alert('서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.');
-                } else {
-                    alert('업로드 중 오류가 발생했습니다.');
+                    errorMessage = '서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.';
                 }
+                alert(errorMessage);
                 setRecorder(null);
                 setIsRecording(false);
-            });
+            }
         });
     };
 
@@ -177,19 +199,20 @@ const Audio = () => {
         <Container>
             <Header title="음성 면접" onBackClick={handleBackClick}/>
             <Contents>
-            <Time>진행 시간 {formatTime(seconds)}</Time>
+                <Time>진행 시간 {formatTime(seconds)}</Time>
                 <Button onClick={handleRecordClick}>
                     <img src={isRecording ? Stop : Play} alt={isRecording ? "stop" : "play"}/>
                 </Button>
                 <Text>
                     {isRecording ? (
-                    <>
-                    녹음 완료하기<br/>(다음 질문)
-                    </>
+                        <>
+                        녹음 완료하기<br/>(다음 질문)
+                        </>
                     ) : (
-                    <>녹음 시작하기<br/>
-                    (답변 시작)
-                    </>)}
+                        <>녹음 시작하기<br/>
+                        (답변 시작)
+                        </>
+                    )}
                 </Text>
                 <Question>남은 질문 개수: {remainingQuestions}개</Question>
             </Contents>
