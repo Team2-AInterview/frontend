@@ -1,29 +1,12 @@
-import React from "react";
 import styled from "styled-components";
 
-const IntroInput = ({ type, handleInput, values }) => {
+const IntroInput = ({ type, handleInput, value }) => {
   return (
     <>
-      <Box1
-        type={type}
-        value={values.motivation}
-        onChange={(e) => handleInput(e, "motivation")}
-      />
-      <Box2
-        type={type}
-        value={values.teamwork}
-        onChange={(e) => handleInput(e, "teamwork")}
-      />
-      <Box3
-        type={type}
-        value={values.effort}
-        onChange={(e) => handleInput(e, "effort")}
-      />
-      <Box4
-        type={type}
-        value={values.aspiration}
-        onChange={(e) => handleInput(e, "aspiration")}
-      />
+      <Box1 type="text" onChange={handleInput} value={value} />
+      <Box2 type="text" onChange={handleInput} value={value} />
+      <Box3 type="text" onChange={handleInput} value={value} />
+      <Box4 type="text" onChange={handleInput} value={value} />
     </>
   );
 };
