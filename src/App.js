@@ -31,24 +31,23 @@ import { AuthProvider } from "./AuthContext";
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <GlobalStyle />
-        <div className="app-container">
-          <Navbar />
-          <Routes>
-            {/* 로그인 전 메인화면 */}
-            <Route path="/" element={<MainBeforeLogin />} />
-            {/* 로그인 전 인트로 */}
-            <Route path="/intro">
-              <Route index element={<Intro1 />} />
-              <Route path="2" element={<Intro2 />} />
-              <Route path="3" element={<Intro3 />} />
-              <Route path="4" element={<Intro4 />} />
-            </Route>
-
-            {/* 로그인/회원가입 */}
-            <Route path="/login" element={<LogIn />} />
-            <Route path="/signup" element={<SignIn />} />
+    <BrowserRouter>
+      <GlobalStyle />
+      <div className="app-container">
+      <Routes>
+        {/* 로그인 전 메인화면 */}
+        <Route path="/" element={<MainBeforeLogin />} />
+        {/* 로그인 전 인트로 */}
+        <Route path="/intro">
+          <Route index element={<Intro1 />} />
+          <Route path="2" element={<Intro2 />} />
+          <Route path="3" element={<Intro3 />} />
+          <Route path="4" element={<Intro4 />} />
+        </Route>
+        
+        {/* 로그인/회원가입 */}
+        <Route path="/login" element={<LogIn />} />
+        <Route path="/signup" element={<SignIn />} />
 
             {/* 로그인 후 메인페이지 */}
             <Route path="/main" element={<Main />} />
@@ -89,6 +88,7 @@ function App() {
             <Route path="/mypage/archive" element={<Archive />} />
             <Route path="/mypage/profile-edit" element={<ProfileEdit />} />
           </Routes>
+          <Navbar/>
         </div>
       </BrowserRouter>
     </AuthProvider>
