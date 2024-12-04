@@ -11,6 +11,7 @@ const Container = styled.div`
   background-color: white;
   padding: 20px;
   padding-top: 100px;
+  padding-bottom: 80px;
   overflow-y: auto; 
   box-sizing: border-box; /* padding 포함한 높이 계산 */
 `;
