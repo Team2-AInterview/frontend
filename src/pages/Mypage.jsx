@@ -275,7 +275,7 @@ const Changes4_3 = styled.div`
 const Mypage = () => {
   const navigate = useNavigate();
   const accessToken = localStorage.getItem("accessToken");
-  const [user, setUser] = useState({ name: "", email: "" });
+  const [user, setUser] = useState({ name: "", id: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState();
 
@@ -317,9 +317,9 @@ const Mypage = () => {
     navigate("/mypage/archive");
   };
 
-  if (isLoading) {
-    return <div>로딩 중...</div>; // 로딩 상태 표시
-  }
+  // if (isLoading) {
+  //   return <div>로딩 중...</div>; // 로딩 상태 표시
+  // }
 
   return (
     <>
@@ -345,10 +345,10 @@ const Mypage = () => {
               {user.name || "로딩 중..."}
             </Changes>
             <Fixed style={{ marginTop: "49px", marginLeft: "30px" }}>
-              이메일
+              아이디
             </Fixed>
             <Changes style={{ marginTop: "49px", marginLeft: "124px" }}>
-              {user.email || "로딩 중..."}
+              {user.id || "로딩 중..."}
             </Changes>
           </Box1>
           <Modi onClick={handleEditClick}>개인정보수정</Modi>
