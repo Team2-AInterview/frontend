@@ -9,6 +9,15 @@ import IntroInput from "../components/mypage/IntroInput";
 import { Plus } from "../img/svgs";
 import axios from "axios";
 
+const Container = styled.div`
+  width: 391px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: white;
+  display: flex;
+  flex-direction: column;
+`;
+
 const Title = styled.div`
   margin-top: 88px;
   margin-bottom: 10px;
@@ -117,7 +126,7 @@ const Introduction = () => {
   const [aspiration, setAspiration] = useState(""); // 초기값을 빈 문자열로 설정
   const [applicationId, setApplicationId] = useState(null); // applicationId 초기값을 null로 설정
   const [name, setName] = useState("");
-  const [customQuestions, setCustomQuestions] = useState(null);
+  const [customQuestions, setCustomQuestions] = useState([]);
 
   const handleBoxClick = () => {
     navigate("/mypage");
@@ -126,34 +135,29 @@ const Introduction = () => {
     navigate(`/mypage/Introduction/${applicationId}`);
   };
 
-  const handleSaveOrUpdate = async () => {
+  const handleSave = async () => {
     const accessToken = localStorage.getItem("authorization");
-    navigate("/mypage/introduction");
-
     if (!accessToken) {
       alert("로그인이 필요합니다.");
       return;
     }
 
-    const url = applicationId
-      ? `${process.env.REACT_APP_SERVER}/api/user/application?applicationId=${applicationId}`
-      : `${process.env.REACT_APP_SERVER}/api/user/application`;
-
-    const method = applicationId ? "put" : "post";
+    const url = `${process.env.REACT_APP_SERVER}/api/user/application`; // POST 요청만 사용
 
     const requestData = {
-      name: name, // Dynamically using the 'name' state
-      motivation: motivation, // Dynamically using the 'motivation' state
-      teamwork: teamwork, // Dynamically using the 'teamwork' state
-      aspiration: aspiration, // Dynamically using the 'aspiration' state
-      effort: effort, // Dynamically using the 'effort' state
-      customQuestions: customQuestions || [], // Dynamically using the 'customQuestions' state, defaulting to an empty array
+      name,
+      motivation,
+      teamwork,
+      aspiration,
+      effort,
+      customQuestions: customQuestions || [], // 빈 배열을 기본값으로 사용
     };
+    console.log(requestData);
+    navigate("/mypage");
 
     try {
-      console.log("Request Data:", requestData);
       const response = await axios({
-        method,
+        method: "post", // 항상 POST 요청
         url,
         data: requestData,
         headers: {
@@ -163,23 +167,21 @@ const Introduction = () => {
       });
 
       if (response.status === 200) {
-        // 응답에서 applicationId를 받아서 알림창에 출력
         const applicationId = response.data.applicationId;
-        alert(
-          applicationId
-            ? `applicationId: ${applicationId}`
-            : `applicationId(저장완료): ${applicationId}`
-        );
+        alert(`applicationId: ${applicationId}`);
         setApplicationId(applicationId);
       } else {
-        alert(`요청에 실패했습니다: ${response.data}`);
+        console.error("서버 응답 실패:", response);
+        alert(`요청에 실패했습니다: ${response.statusText}`);
       }
     } catch (error) {
-      console.error("지원서 처리 중 오류:", error);
+      console.error("서버 오류:", error);
       if (error.response) {
-        console.error("서버 응답:", error.response.data);
+        console.error("서버 응답 내용:", error.response.data);
+        alert(`서버 오류: ${error.response.data.message || "알 수 없는 오류"}`);
+      } else {
+        alert("저장에 실패했습니다.");
       }
-      alert("저장/수정에 실패했습니다.");
     }
   };
 
@@ -197,51 +199,64 @@ const Introduction = () => {
     } else if (field === "aspiration") {
       setAspiration(value);
     } else if (field === "customQuestions") {
-      setCustomQuestions(value);
+      setCustomQuestions([{ question: value, answer: "" }]);
     }
   };
+  // console.log("Current Values:");
+  // console.log("Name: ", name);
+  // console.log("Motivation: ", motivation);
+  // console.log("Teamwork: ", teamwork);
+  // console.log("Effort: ", effort);
+  // console.log("Aspiration: ", aspiration);
+  // console.log("Custom Questions: ", customQuestions);
 
   return (
     <>
-      <Title type="text" value={name} onChange={(e) => handleInput(e, "name")}>
-        <Titles placeholder="지원서명을 작성해주세요." />
-      </Title>
-      <Maindiv>
-        <Subtitle style={{ marginTop: "19px" }}>
-          1. 지원동기를 적어주세요.
-        </Subtitle>
-        <Subtitle style={{ marginTop: "162px" }}>
-          2. 기억에 남는 팀 활동과 팀 내 본인의 역할을 적어주세요.
-        </Subtitle>
-        <IntroInput
+      <Container>
+        <Title
           type="text"
-          handleInput={handleInput}
-          values={{
-            motivation,
-            teamwork,
-            effort,
-            aspiration,
-          }}
-        />
+          value={name}
+          onChange={(e) => handleInput(e, "name")}
+        >
+          <Titles placeholder="지원서명을 작성해주세요." />
+        </Title>
+        <Maindiv>
+          <Subtitle style={{ marginTop: "19px" }}>
+            1. 지원동기를 적어주세요.
+          </Subtitle>
+          <Subtitle style={{ marginTop: "162px" }}>
+            2. 기억에 남는 팀 활동과 팀 내 본인의 역할을 적어주세요.
+          </Subtitle>
+          <IntroInput
+            type="text"
+            handleInput={handleInput}
+            values={{
+              motivation,
+              teamwork,
+              effort,
+              aspiration,
+            }}
+          />
 
-        <Subtitle style={{ marginTop: "303px" }}>
-          3. 직무에 필요한 전문성(지식/기술)을 쌓기 위하여 <br />
-          어떠한 노력을 하였는지 적어주세요.
-        </Subtitle>
+          <Subtitle style={{ marginTop: "303px" }}>
+            3. 직무에 필요한 전문성(지식/기술)을 쌓기 위하여 <br />
+            어떠한 노력을 하였는지 적어주세요.
+          </Subtitle>
 
-        <Subtitle style={{ marginTop: "456px" }}>
-          4. 입사 후의 포부를 적어주세요.
-        </Subtitle>
+          <Subtitle style={{ marginTop: "456px" }}>
+            4. 입사 후의 포부를 적어주세요.
+          </Subtitle>
 
-        <Qdiv>
-          <Ques>질문 추가하기</Ques>
-          <Plus />
-        </Qdiv>
-      </Maindiv>
-      <MDdiv>
-        <Modi1 onClick={handleBoxClick}>목록으로</Modi1>
-        <Modi2 onClick={(handleSaveOrUpdate, handleModiClick)}>저장하기</Modi2>
-      </MDdiv>
+          <Qdiv>
+            <Ques>질문 추가하기</Ques>
+            <Plus />
+          </Qdiv>
+        </Maindiv>
+        <MDdiv>
+          <Modi1 onClick={handleBoxClick}>목록으로</Modi1>
+          <Modi2 onClick={handleSave}>저장하기</Modi2>
+        </MDdiv>
+      </Container>
     </>
   );
 };

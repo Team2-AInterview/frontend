@@ -5,6 +5,15 @@ import { useNavigate } from "react-router-dom";
 import { Icon } from "@iconify/react";
 import img from "../img/Camera.png";
 
+const Container = styled.div`
+  width: 391px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: white;
+  display: flex;
+  flex-direction: column;
+`;
+
 const Title = styled.div`
   margin-top: 88px;
   margin-bottom: 7px;
@@ -190,67 +199,76 @@ const ProfileEdit = () => {
 
   return (
     <>
-      <Title>개인정보수정</Title>
-      <Maindiv>
-        <ProfileIcon>
-          {image ? (
-            <img src={image} alt="Profile" />
-          ) : (
-            <StyledIcon icon="ic:baseline-person" />
-          )}
-        </ProfileIcon>
-        <label htmlFor="fileUpload">
-          <UploadButton
-            onClick={() => document.getElementById("fileUpload").click()}
-          >
-            {" "}
-            <img
-              src={img}
-              alt="camera"
-              style={{
-                width: "15px",
-                height: "15px",
-                marginRight: "10px",
-                marginTop: "3px",
-              }}
-            />
-            사진 올리기
-          </UploadButton>
-        </label>
-        <input
-          id="fileUpload"
-          type="file"
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={handleUpload}
-        />
-        <InputGroup>
-          <Label>이름</Label>
-          <InputRow>
-            <NameInput maxLength={4} value={name} onChange={handleNameChange} />
-            <SaveButton onClick={() => handleSave("name")} disabled={isLoading}>
-              저장하기
-            </SaveButton>
-          </InputRow>
-        </InputGroup>
-
-        <InputGroup>
-          <Label>비밀번호</Label>
-          <InputRow>
-            <PasswordInput
-              type="password"
-              value={password}
-              onChange={handlePasswordChange}
-            ></PasswordInput>
-            <SaveButton
-              onClick={() => handleSave("password")}
-              disabled={isLoading}
+      <Container>
+        <Title>개인정보수정</Title>
+        <Maindiv>
+          <ProfileIcon>
+            {image ? (
+              <img src={image} alt="Profile" />
+            ) : (
+              <StyledIcon icon="ic:baseline-person" />
+            )}
+          </ProfileIcon>
+          <label htmlFor="fileUpload">
+            <UploadButton
+              onClick={() => document.getElementById("fileUpload").click()}
             >
-              저장하기
-            </SaveButton>
-          </InputRow>
-        </InputGroup>
-      </Maindiv>
+              {" "}
+              <img
+                src={img}
+                alt="camera"
+                style={{
+                  width: "15px",
+                  height: "15px",
+                  marginRight: "10px",
+                  marginTop: "3px",
+                }}
+              />
+              사진 올리기
+            </UploadButton>
+          </label>
+          <input
+            id="fileUpload"
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleUpload}
+          />
+          <InputGroup>
+            <Label>이름</Label>
+            <InputRow>
+              <NameInput
+                maxLength={4}
+                value={name}
+                onChange={handleNameChange}
+              />
+              <SaveButton
+                onClick={() => handleSave("name")}
+                disabled={isLoading}
+              >
+                저장하기
+              </SaveButton>
+            </InputRow>
+          </InputGroup>
+
+          <InputGroup>
+            <Label>비밀번호</Label>
+            <InputRow>
+              <PasswordInput
+                type="password"
+                value={password}
+                onChange={handlePasswordChange}
+              ></PasswordInput>
+              <SaveButton
+                onClick={() => handleSave("password")}
+                disabled={isLoading}
+              >
+                저장하기
+              </SaveButton>
+            </InputRow>
+          </InputGroup>
+        </Maindiv>
+      </Container>
     </>
   );
 };
