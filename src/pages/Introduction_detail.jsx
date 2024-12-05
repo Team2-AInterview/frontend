@@ -232,10 +232,6 @@ const Introduction_detail = () => {
     }
   };
 
-  if (loading) {
-    return <div>로딩 중...</div>;
-  }
-
   const handleBoxClick = () => {
     navigate("/mypage");
   };
