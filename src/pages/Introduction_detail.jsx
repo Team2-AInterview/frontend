@@ -4,6 +4,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import IntroInput from "../components/mypage/IntroInput";
 
+const Container = styled.div`
+  width: 391px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: white;
+  display: flex;
+  flex-direction: column;
+`;
 const Title = styled.div`
   margin-top: 88px;
   margin-bottom: 10px;
@@ -204,15 +212,17 @@ const Introduction_detail = () => {
 
       if (response.status === 200) {
         alert("수정이 완료되었습니다.");
-        // 내부 상태를 서버의 응답값으로 업데이트
+        // 서버에서 반환된 응답 데이터로 상태 업데이트
         const updatedData = response.data;
+        console.log("서버 응답:", response.data);
 
-        setName(updatedData.name || name);
+        setName(updatedData.name || name); // 이름 즉시 반영
         setMotivation(updatedData.motivation || motivation);
         setTeamwork(updatedData.teamwork || teamwork);
         setEffort(updatedData.effort || effort);
         setAspiration(updatedData.aspiration || aspiration);
         setCustomQuestions(updatedData.customQuestions || customQuestions);
+        navigate("/mypage");
       } else {
         alert(`수정에 실패했습니다: ${response.data}`);
       }
@@ -230,42 +240,75 @@ const Introduction_detail = () => {
     navigate("/mypage");
   };
 
+  const handleDeleteApplication = async () => {
+    const accessToken = localStorage.getItem("authorization");
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    try {
+      const url = `${process.env.REACT_APP_SERVER}/api/user/application/`;
+      const response = await axios.delete(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (response.status === 200) {
+        alert("지원서가 삭제되었습니다.");
+        navigate("/mypage"); // 삭제 후 마이페이지로 이동
+      } else {
+        alert("삭제에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("삭제 중 오류 발생:", error);
+      alert("삭제에 실패했습니다.");
+    }
+  };
+
   return (
     <>
-      <Title>
-        <Titles value={name} onChange={(e) => handleInput(e, "name")} />
-      </Title>
-      <Maindiv>
-        <Subtitle style={{ marginTop: "19px" }}>
-          1. 지원동기를 적어주세요.
-        </Subtitle>
-        <Subtitle style={{ marginTop: "162px" }}>
-          2. 기억에 남는 팀 활동과 팀 내 본인의 역할을 적어주세요.
-        </Subtitle>
-        <Subtitle style={{ marginTop: "303px" }}>
-          3. 직무에 필요한 전문성(지식/기술)을 쌓기 위하여 <br />
-          어떠한 노력을 하였는지 적어주세요.
-        </Subtitle>
-        <Subtitle style={{ marginTop: "456px" }}>
-          4. 입사 후의 포부를 적어주세요.
-        </Subtitle>
-        <IntroInput
-          type="text"
-          handleInput={handleInput}
-          values={{
-            motivation,
-            teamwork,
-            effort,
-            aspiration,
-          }}
-        />
-      </Maindiv>
+      <Container>
+        <Title>
+          <Titles
+            value={name} // 상태에서 가져온 값 표시
+            onChange={(e) => handleInput(e, "name")} // 상태 업데이트
+            placeholder="이름을 입력하세요"
+          />
+        </Title>
+        <Maindiv>
+          <Subtitle style={{ marginTop: "19px" }}>
+            1. 지원동기를 적어주세요.
+          </Subtitle>
+          <Subtitle style={{ marginTop: "162px" }}>
+            2. 기억에 남는 팀 활동과 팀 내 본인의 역할을 적어주세요.
+          </Subtitle>
+          <Subtitle style={{ marginTop: "303px" }}>
+            3. 직무에 필요한 전문성(지식/기술)을 쌓기 위하여 <br />
+            어떠한 노력을 하였는지 적어주세요.
+          </Subtitle>
+          <Subtitle style={{ marginTop: "456px" }}>
+            4. 입사 후의 포부를 적어주세요.
+          </Subtitle>
+          <IntroInput
+            type="text"
+            handleInput={handleInput}
+            values={{
+              motivation,
+              teamwork,
+              effort,
+              aspiration,
+            }}
+          />
+        </Maindiv>
 
-      <MDdiv>
-        <Modi onClick={handleBoxClick}>목록으로 돌아가기</Modi>
-        <Modi1 onClick={handleUpdateApplication}>수정하기</Modi1>
-        <Modi2>삭제하기</Modi2>
-      </MDdiv>
+        <MDdiv>
+          <Modi onClick={handleBoxClick}>목록으로 돌아가기</Modi>
+          <Modi1 onClick={handleUpdateApplication}>수정하기</Modi1>
+          <Modi2 onClick={handleDeleteApplication}>삭제하기</Modi2>
+        </MDdiv>
+      </Container>
     </>
   );
 };

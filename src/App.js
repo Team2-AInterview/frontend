@@ -22,6 +22,7 @@ import Audio from "./pages/Audio";
 import InterviewSummary from "./pages/InterviewSummary";
 import Mypage from "./pages/Mypage";
 import Resume from "./pages/Resume";
+import ResumeDetail from "./pages/Resume_detail";
 import Introduction from "./pages/Introduction";
 import Introduction_detail from "./pages/Introduction_detail";
 import Archive from "./pages/Archive";
@@ -80,6 +81,7 @@ function App() {
             {/* 마이 페이지 */}
             <Route path="/mypage" element={<Mypage />} />
             <Route path="/mypage/resume" element={<Resume />} />
+            <Route path="/mypage/resume/detail" element={<ResumeDetail />} />
             <Route path="/mypage/introduction" element={<Introduction />} />
             <Route
               path="/mypage/introduction/:applicationId"
