@@ -1,4 +1,4 @@
-import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { Routes, Route, BrowserRouter, useLocation } from "react-router-dom";
 import GlobalStyle from "./styles/globalstyles";
 import Navbar from "./components/Navbar";
 
@@ -32,9 +32,30 @@ import { AuthProvider } from "./AuthContext";
 function App() {
   return (
     <AuthProvider>
-    <BrowserRouter>
-      <GlobalStyle />
-      <div className="app-container">
+      <BrowserRouter>
+        <GlobalStyle />
+        <AppContent />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+// AppContent 컴포넌트를 따로 정의해 useLocation을 안전하게 호출
+function AppContent() {
+  const location = useLocation();
+
+  const hideNavbarPaths = [
+    "/",
+    "/intro",
+    "/intro/2",
+    "/intro/3",
+    "/intro/4",
+    "/login",
+    "/signup",
+  ];
+
+  return (
+    <div className="app-container">
       <Routes>
         {/* 로그인 전 메인화면 */}
         <Route path="/" element={<MainBeforeLogin />} />
@@ -45,55 +66,55 @@ function App() {
           <Route path="3" element={<Intro3 />} />
           <Route path="4" element={<Intro4 />} />
         </Route>
-        
+
         {/* 로그인/회원가입 */}
         <Route path="/login" element={<LogIn />} />
         <Route path="/signup" element={<SignIn />} />
 
-            {/* 로그인 후 메인페이지 */}
-            <Route path="/main" element={<Main />} />
+        {/* 로그인 후 메인페이지 */}
+        <Route path="/main" element={<Main />} />
 
-            {/* 면접 예상 질문 페이지 */}
-            <Route path="/interviewquestion" element={<InterviewQuestion />} />
+        {/* 면접 예상 질문 페이지 */}
+        <Route path="/interviewquestion" element={<InterviewQuestion />} />
 
-            {/* 모의 면접 선택 */}
-            <Route path="/interview" element={<MockInterview />} />
-            <Route path="/interview/technical" element={<TechInterview />} />
-            <Route path="/interview/common" element={<CommonInterview />} />
-            <Route
-              path="/interview/integrated"
-              element={<IntegratedInterview />}
-            />
+        {/* 모의 면접 선택 */}
+        <Route path="/interview" element={<MockInterview />} />
+        <Route path="/interview/technical" element={<TechInterview />} />
+        <Route path="/interview/common" element={<CommonInterview />} />
+        <Route
+          path="/interview/integrated"
+          element={<IntegratedInterview />}
+        />
 
-            {/* 면접 옵션 선택 */}
-            <Route path="/interview/options" element={<InterviewOptions />} />
+        {/* 면접 옵션 선택 */}
+        <Route path="/interview/options" element={<InterviewOptions />} />
 
-            {/* 화상 면접 */}
-            <Route path="/video" element={<Video />} />
-            <Route path="/group-video" element={<GroupVideo />} />
+        {/* 화상 면접 */}
+        <Route path="/video" element={<Video />} />
+        <Route path="/group-video" element={<GroupVideo />} />
 
-            {/* 음성 면접 */}
-            <Route path="/audio" element={<Audio />} />
+        {/* 음성 면접 */}
+        <Route path="/audio" element={<Audio />} />
 
-            {/* 면접 종료 후 총평 페이지 */}
-            <Route path="/interview-summary" element={<InterviewSummary />} />
+        {/* 면접 종료 후 총평 페이지 */}
+        <Route path="/interview-summary" element={<InterviewSummary />} />
 
-            {/* 마이 페이지 */}
-            <Route path="/mypage" element={<Mypage />} />
-            <Route path="/mypage/resume" element={<Resume />} />
-            <Route path="/mypage/resume/detail" element={<ResumeDetail />} />
-            <Route path="/mypage/introduction" element={<Introduction />} />
-            <Route
-              path="/mypage/introduction/:applicationId"
-              element={<Introduction_detail />}
-            />
-            <Route path="/mypage/archive" element={<Archive />} />
-            <Route path="/mypage/profile-edit" element={<ProfileEdit />} />
-          </Routes>
-          <Navbar/>
-        </div>
-      </BrowserRouter>
-    </AuthProvider>
+        {/* 마이 페이지 */}
+        <Route path="/mypage" element={<Mypage />} />
+        <Route path="/mypage/resume" element={<Resume />} />
+        <Route path="/mypage/introduction" element={<Introduction />} />
+        <Route
+          path="/mypage/introduction/:applicationId"
+          element={<Introduction_detail />}
+        />
+        <Route path="/mypage/archive" element={<Archive />} />
+        <Route path="/mypage/profile-edit" element={<ProfileEdit />} />
+      </Routes>
+
+      {/* 현재 경로가 hideNavbarPaths에 포함되지 않은 경우 Navbar를 렌더링 */}
+      {!hideNavbarPaths.includes(location.pathname) && <Navbar />}
+    </div>
+            
   );
 }
 
