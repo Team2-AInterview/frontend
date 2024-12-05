@@ -144,6 +144,27 @@ const InterviewQuestion = () => {
 
   const mockMyResumes = ["회사 지원서1", "기업 지원서2", "자기소개서3"];
 
+    // 면접 예상 질문 목데이터
+  const mockInterviewQuestions = [
+    // 1. 자기소개 및 기본 질문
+    "이력서에 적힌 내용을 바탕으로 본인을 간단히 소개해 주세요.",
+    "개발자가 되기로 결심한 계기는 무엇인가요?",
+    "본인의 강점과 약점은 무엇이며, 개발자로서 어떻게 보완했나요?",
+    "이 직무에 지원한 이유는 무엇인가요?",
+    // 2. 기술 스택 및 프로젝트 관련
+    "이력서에 작성한 프로젝트 중 가장 도전적이었던 경험은 무엇인가요?",
+    "해당 프로젝트에서 본인이 맡은 역할과 기여도를 구체적으로 설명해 주세요.",
+    "사용했던 기술 스택(프로그래밍 언어, 프레임워크, 도구) 중 가장 자신 있는 것은 무엇인가요?",
+    "특정 기술(React, Node.js, Python 등)을 선택한 이유는 무엇이었나요?",
+    "협업 환경에서의 Git 사용 경험이나 Git 충돌 해결 사례를 설명해 주세요.",
+    // 3. 문제 해결 및 디버깅 경험
+    "개발 중 발생했던 주요 문제와 이를 해결한 방법을 이야기해 주세요.",
+    "디버깅 과정에서 가장 어려웠던 사례는 무엇이었나요?",
+    "오류 로그를 확인하고 문제를 해결했던 경험을 말해 주세요.",
+    "제한된 시간 내에 문제를 해결해야 했던 경험이 있다면 공유해 주세요.",
+
+  ];
+
   const handleResumeSelect = (resume) => {
     setSelectedResume(resume);
   };
@@ -155,11 +176,8 @@ const InterviewQuestion = () => {
     }
     setIsGenerating(true);
     setTimeout(() => {
-      setGeneratedQuestions([
-        "기술 면접 심화 질문 1",
-        "지원서 관련 질문 2",
-        "당신은 어떤 인재인가요?",
-      ]);
+      // 모든 목데이터 질문 추가
+      setGeneratedQuestions(mockInterviewQuestions);
       setIsGenerating(false);
     }, 2000);
   };
