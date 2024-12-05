@@ -43,8 +43,6 @@ const IconWrapper = styled.div`
 
 const Navbar = () => {
     const [activeNav, setActiveNav] = useState(1);
-    const { isLoggedIn } = useAuth(); //로그인 상태 가져옴
-    const navigate = useNavigate();
 
     const navItems = [
         { id:1, name: "홈", icon: HomeIcon, to: "/main" },
@@ -53,23 +51,15 @@ const Navbar = () => {
         { id:4, name: "마이페이지", icon: PersonIcon, to: "/mypage" },     
     ];
 
-    const handleNavigation = ( id, to) => {
-        if (!isLoggedIn) {
-            alert("로그인이 필요합니다.");
-            navigate("/login");
-        } else {
-            setActiveNav(id);
-            navigate(to);
-        }
-    };
 
     return (
         <Wrapper>
             {navItems.map((item) => (
                 <NavLink
                     key={item.id}
+                    to={item.to}
                     active={activeNav === item.id}
-                    onClick={() => handleNavigation(item.id, item.to)}
+                    onClick={()=> setActiveNav(item.id)}
                 >
                     <NavItem>
                         <IconWrapper><item.icon size="25px" /></IconWrapper>
