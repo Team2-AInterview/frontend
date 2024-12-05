@@ -22,6 +22,7 @@ import Audio from "./pages/Audio";
 import InterviewSummary from "./pages/InterviewSummary";
 import Mypage from "./pages/Mypage";
 import Resume from "./pages/Resume";
+import ResumeDetail from "./pages/Resume_detail";
 import Introduction from "./pages/Introduction";
 import Introduction_detail from "./pages/Introduction_detail";
 import Archive from "./pages/Archive";
@@ -113,6 +114,7 @@ function AppContent() {
       {/* 현재 경로가 hideNavbarPaths에 포함되지 않은 경우 Navbar를 렌더링 */}
       {!hideNavbarPaths.includes(location.pathname) && <Navbar />}
     </div>
+            
   );
 }
 

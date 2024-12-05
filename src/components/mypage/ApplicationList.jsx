@@ -68,33 +68,33 @@ const ApplicationList = () => {
   const [applicationId, setApplicationId] = useState(null); // applicationId 상태
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchApplicationData = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_SERVER}/api/user/applicationList`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("authorization")}`,
-            },
-          }
-        );
-
-        if (response.status === 200) {
-          const fetchedData = response.data;
-          setApplicationData(fetchedData);
-          setLoading(false);
-        } else {
-          alert("지원서 데이터를 불러오는 데 실패했습니다.");
+  const fetchApplicationData = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_SERVER}/api/user/applicationList`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authorization")}`,
+          },
         }
-      } catch (error) {
-        console.error("지원서 처리 중 오류:", error);
+      );
+
+      if (response.status === 200) {
+        const fetchedData = response.data;
+        setApplicationData(fetchedData);
+        setLoading(false);
+      } else {
         alert("지원서 데이터를 불러오는 데 실패했습니다.");
       }
-    };
+    } catch (error) {
+      console.error("지원서 처리 중 오류:", error);
+      alert("지원서 데이터를 불러오는 데 실패했습니다.");
+    }
+  };
 
+  useEffect(() => {
     fetchApplicationData();
-  }, [applicationId]);
+  }, []);
 
   const handleApplicationClick = (applicationId) => {
     navigate(`/mypage/Introduction/${applicationId}`);
@@ -110,6 +110,10 @@ const ApplicationList = () => {
       return true;
     }
     return false;
+  };
+
+  const handleUploadComplete = () => {
+    fetchApplicationData(); // 업로드가 완료된 후 데이터 갱신
   };
   return (
     <Box3>
@@ -134,6 +138,7 @@ const ApplicationList = () => {
         onClick={() => {
           if (!isUploadDisabled()) {
             handleUploadClick();
+            handleUploadComplete();
           }
         }}
         disabled={isUploadDisabled()}

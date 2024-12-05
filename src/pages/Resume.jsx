@@ -8,6 +8,14 @@ import Box5 from "../components/mypage/ResumeInput";
 import axios from "axios";
 import img from "../img/Camera.png";
 
+const Container = styled.div`
+  width: 391px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: white;
+  display: flex;
+  flex-direction: column;
+`;
 const Title = styled.div`
   margin-top: 88px;
   margin-bottom: 7px;
@@ -18,7 +26,19 @@ const Title = styled.div`
   color: #000000;
   text-align: center;
 `;
-
+const Titles = styled.input`
+  font-size: 20px;
+  color: #000000;
+  text-align: center;
+  border: none;
+  outline: none;
+  width: 340px;
+  border-radius: 10px;
+  &:focus {
+    border: 1px solid;
+    border-color: #3a00f9; /* 포커스 시 보라색 */
+  }
+`;
 const Maindiv = styled.div`
   box-sizing: border-box;
   width: 340px;
@@ -93,6 +113,9 @@ const Modi2 = styled.button`
 const Resume = () => {
   const [image, setImage] = useState(null);
   const [name, setName] = useState(""); // 이름 상태 추가
+  const [academicAbility, setAcademicAbility] = useState("");
+  const [career, setCareer] = useState("");
+  const [contact, setContact] = useState("");
 
   const handleUpload = (e) => {
     const file = e.target.files[0];
@@ -103,146 +126,163 @@ const Resume = () => {
     }
   };
   const navigate = useNavigate();
-  const [profile, setProfile] = useState();
-  const [education, setEducation] = useState();
-  const [experience, setExperience] = useState();
-  const [contact, setContact] = useState();
 
-  useEffect(() => {
-    const fetchResume = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_SERVER}/api/user/resume/get`
-        );
-        const { name, academicAbility, career, contact } = response.data;
-        setProfile(name);
-        setEducation(academicAbility);
-        setExperience(career);
-        setContact(contact);
-      } catch (error) {
-        console.error("Error fetching resume data", error);
-      }
+  const handleSave = async () => {
+    // 콘솔에서 상태 값 확인
+    console.log("Saving data:", { name, academicAbility, career, contact });
+
+    const accessToken = localStorage.getItem("authorization");
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    const url = `${process.env.REACT_APP_SERVER}/api/user/resume/save`; // 서버 URL
+
+    // 상태 값이 제대로 확인되었는지 다시 한번 콘솔로 확인
+    console.log("Sending data to server:", {
+      name,
+      academicAbility,
+      career,
+      contact,
+    });
+
+    const requestData = {
+      name,
+      academicAbility,
+      career,
+      contact,
     };
 
-    fetchResume();
-  }, []);
-
-  const handleInput = (e, field) => {
-    const value = e.target.value;
-    if (field === "profile") {
-      setProfile(value);
-    } else if (field === "education") {
-      setEducation(value);
-    } else if (field === "experience") {
-      setExperience(value);
-    } else if (field === "contact") {
-      setContact(value);
+    try {
+      const response = await axios.post(url, requestData, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (response.status === 200) {
+        alert("저장되었습니다!");
+      } else {
+        console.error("서버 응답 실패:", response);
+        alert(`요청에 실패했습니다: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error", error.response || error);
+      alert(
+        `저장 중 오류 발생: ${error.response?.data?.message || error.message}`
+      );
     }
   };
 
-  const handleSave = async () => {
-    try {
-      const data = {
-        name: profile,
-        academicAbility: education,
-        career: experience,
-        contact: contact,
-      };
-      await axios.post(
-        `${process.env.REACT_APP_SERVER}/api/user/resume/save`,
-        data
-      );
-      alert("저장되었습니다!");
-      console.log(data);
-    } catch (error) {
-      console.error("Error saving resume data", error);
+  const handleInput = (e, field) => {
+    const value = e.target.value;
+    console.log(`Changing ${field} to: `, value); // 값이 제대로 넘어오는지 확인
+    if (field === "name") {
+      setName(value);
+    } else if (field === "academicAbility") {
+      setAcademicAbility(value);
+    } else if (field === "career") {
+      setCareer(value);
+    } else if (field === "contact") {
+      setContact(value);
     }
   };
   const handleBoxClick = () => {
     navigate("/mypage");
   };
+
+  useEffect(() => {
+    console.log("Updated states:", { name, academicAbility, career, contact });
+  }, [name, academicAbility, career, contact]);
   return (
     <>
-      <Title>나의 기본 이력서</Title>
-      <Maindiv>
-        <Subtitle style={{ margin: "40px 150px 9px 111px" }}>프로필</Subtitle>
-        <Box1 onClick={() => document.getElementById("fileUpload").click()}>
-          {" "}
-          {image ? (
-            <img
-              src={image}
-              alt="Profile"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                position: "absolute",
-                top: 0,
-                left: 0,
-              }}
+      <Container>
+        <Title>대표이력서</Title>
+        <Maindiv>
+          <Subtitle style={{ margin: "40px 150px 9px 111px" }}>프로필</Subtitle>
+          <Box1 onClick={() => document.getElementById("fileUpload").click()}>
+            {" "}
+            {image ? (
+              <img
+                src={image}
+                alt="Profile"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                }}
+              />
+            ) : (
+              <img
+                src={img}
+                alt="camera"
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  objectFit: "cover",
+                  position: "absolute",
+                  marginTop: 33,
+                  marginLeft: 22,
+                }}
+              />
+            )}
+            <label htmlFor="fileUpload"></label>
+            <input
+              id="fileUpload"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleUpload}
             />
-          ) : (
-            <img
-              src={img}
-              alt="camera"
-              style={{
-                width: "30px",
-                height: "30px",
-                objectFit: "cover",
-                position: "absolute",
-                marginTop: 33,
-                marginLeft: 22,
-              }}
-            />
-          )}
-          <label htmlFor="fileUpload"></label>
-          <input
-            id="fileUpload"
-            type="file"
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={handleUpload}
+          </Box1>
+          <Box2
+            type="text"
+            placeholder="프로필을 작성해주세요."
+            handleInput={handleInput}
+            value={name}
+            onChange={(e) => setName(e, "name")}
           />
-        </Box1>
-        <Box2
-          type="text"
-          placeholder="프로필을 작성해주세요."
-          value={profile}
-          onChange={(e) => handleInput(e, "profile")}
-        />
-        <Subtitle style={{ marginTop: "175px", marginLeft: "14px" }}>
-          학력
-        </Subtitle>
-        <Box3
-          type="text"
-          placeholder="학력을 작성해주세요."
-          value={education}
-          onChange={(e) => handleInput(e, "education")}
-        />
-        <Subtitle style={{ marginTop: "314px", marginLeft: "14px" }}>
-          경력
-        </Subtitle>
-        <Box4
-          type="text"
-          value={experience}
-          placeholder="경력을 작성해주세요."
-          onChange={(e) => handleInput(e, "experience")}
-        />
-        <Subtitle style={{ marginTop: "468px", marginLeft: "14px" }}>
-          contact
-        </Subtitle>
-        <Box5
-          type="text"
-          value={contact}
-          placeholder="연락처를 작성해주세요."
-          onChange={(e) => handleInput(e, "contact")}
-        />
-      </Maindiv>
+          <Subtitle style={{ marginTop: "175px", marginLeft: "14px" }}>
+            학력
+          </Subtitle>
+          <Box3
+            type="text"
+            placeholder="학력을 작성해주세요."
+            handleInput={handleInput}
+            value={academicAbility}
+            onChange={(e) => setAcademicAbility(e, "academicAbility")}
+          />
+          <Subtitle style={{ marginTop: "314px", marginLeft: "14px" }}>
+            경력
+          </Subtitle>
+          <Box4
+            type="text"
+            value={career}
+            placeholder="경력을 작성해주세요."
+            handleInput={handleInput}
+            onChange={(e) => setCareer(e, "career")}
+          />
+          <Subtitle style={{ marginTop: "468px", marginLeft: "14px" }}>
+            contact
+          </Subtitle>
+          <Box5
+            type="text"
+            value={contact}
+            placeholder="연락처를 작성해주세요."
+            handleInput={handleInput}
+            onChange={(e) => setContact(e, "contact")}
+          />
+        </Maindiv>
 
-      <MDdiv>
-        <Modi1 onClick={handleBoxClick}>목록으로</Modi1>
-        <Modi2 onClick={handleSave}>수정완료</Modi2>
-      </MDdiv>
+        <MDdiv>
+          <Modi1 onClick={handleBoxClick}>목록으로</Modi1>
+          <Modi2 onClick={handleSave}>저장하기</Modi2>
+        </MDdiv>
+      </Container>
     </>
   );
 };

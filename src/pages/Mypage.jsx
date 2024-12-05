@@ -6,12 +6,13 @@ import axios from "axios";
 import ApplicationList from "../components/mypage/ApplicationList";
 
 const Container = styled.div`
+  width: 391px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: white;
   display: flex;
   flex-direction: column;
-  /* align-items: center; */
-  justify-content: center;
-  padding: 20px;
-  background-color: white;
+  padding: 30px;
 `;
 
 const StyledIcon = styled(Icon)`
@@ -42,7 +43,7 @@ const ProfileIcon = styled.div`
   justify-content: center;
   width: 66px;
   height: 66px;
-  /* margin-left: 27px; */
+  /* margin-left: 22px; */
   margin-top: 28px;
   background: #3a00f9;
   border-radius: 100px;
@@ -144,7 +145,7 @@ const Maindiv = styled.div`
   position: relative;
   /* margin-left: 25px; */
   margin-top: 75px;
-  margin-bottom: 100px;
+  /* margin-bottom: 100px; */
 `;
 
 const Title_4 = styled.div`
@@ -304,7 +305,6 @@ const Mypage = () => {
 
     fetchUserData();
   }, [accessToken]);
-
   const handleEditClick = () => {
     navigate("/mypage/profile-edit");
   };
@@ -357,8 +357,11 @@ const Mypage = () => {
           <Fixed style={{ marginTop: "21px", marginLeft: "20px" }}>
             나의 이력서
           </Fixed>
-          <Changes style={{ marginTop: "21px", marginLeft: "122px" }}>
-            이력서 1
+          <Changes
+            style={{ marginTop: "21px", marginLeft: "122px" }}
+            onClick={() => navigate("/mypage/resume/detail")}
+          >
+            대표이력서
           </Changes>
           <Modi2 onClick={handleUploadResume}>업로드하기</Modi2>
         </Box2>
