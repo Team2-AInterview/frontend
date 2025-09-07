@@ -35,7 +35,6 @@ export default MainBeforeLogin;
 const Container = styled.div`
   display: flex;
   width: 391px;
-  min-height: 100%;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
